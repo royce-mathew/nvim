@@ -14,7 +14,7 @@ return {
         lua_ls = {},
         rust_analyzer = {},
         pyright = {},
-        tsserver = {},
+        ts_ls = {},
         eslint = {},
       },
       setup = {},
@@ -35,7 +35,15 @@ return {
       -- Setup servers via mason-lspconfig
       local mason_lspconfig = require("mason-lspconfig")
       local servers = opts.servers
-      local ensure_installed = vim.tbl_keys(servers)
+      local npm_servers = {
+        eslint = true,
+        pyright = true,
+        ts_ls = true,
+      }
+      local ensure_installed = vim.tbl_filter(function(server)
+        -- Keep system LSPs usable, but do not retry Mason packages without their npm prerequisite.
+        return not npm_servers[server] or vim.fn.executable("npm") == 1
+      end, vim.tbl_keys(servers))
       
       mason_lspconfig.setup({
         ensure_installed = ensure_installed,

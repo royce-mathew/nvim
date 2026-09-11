@@ -21,7 +21,7 @@ opt.mouse = "a" -- Enable mouse mode
 opt.number = true -- Print line number
 opt.pumblend = 10 -- Popup blend
 opt.pumheight = 10 -- Maximum number of entries in a popup
-opt.relativenumber = true -- Relative line numbers
+opt.relativenumber = true -- Relative lines in normal mode; absolute lines while inserting
 opt.scrolloff = 4 -- Lines of context
 opt.sessionoptions = { "buffers", "curdir", "tabpages", "winsize", "help", "globals", "skiprtp", "folds" }
 opt.shiftround = true -- Round indent
@@ -50,3 +50,26 @@ opt.wrap = false -- Disable line wrap
 if vim.fn.has("nvim-0.10") == 1 then
   opt.smoothscroll = true
 end
+local relative_number_group = vim.api.nvim_create_augroup("SmartRelativeNumber", { clear = true })
+local relative_numbers = {}
+
+vim.api.nvim_create_autocmd("InsertEnter", {
+  group = relative_number_group,
+  callback = function()
+    local winid = vim.api.nvim_get_current_win()
+    relative_numbers[winid] = vim.wo[winid].relativenumber
+    vim.wo[winid].relativenumber = false
+  end,
+})
+
+vim.api.nvim_create_autocmd("InsertLeave", {
+  group = relative_number_group,
+  callback = function()
+    local winid = vim.api.nvim_get_current_win()
+    local relative_number = relative_numbers[winid]
+    if relative_number ~= nil then
+      vim.wo[winid].relativenumber = relative_number
+      relative_numbers[winid] = nil
+    end
+  end,
+})

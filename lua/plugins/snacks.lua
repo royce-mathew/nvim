@@ -4,6 +4,9 @@ return {
     "folke/snacks.nvim",
     priority = 1000,
     lazy = false,
+    dependencies = {
+        { "nvim-tree/nvim-web-devicons", opts = { default = true } },
+    },
     opts = {
         bigfile = { enabled = true },
         dashboard = { enabled = true },
@@ -18,6 +21,22 @@ return {
         statuscolumn = { enabled = true },
         words = { enabled = true },
     },
+    config = function(_, opts)
+        local snacks = require("snacks")
+        snacks.setup(opts)
+
+        local function apply_untracked_git_status_highlight()
+            -- Normal's background would cover the picker cursor line, so copy only its readable foreground.
+            local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
+            vim.api.nvim_set_hl(0, "SnacksPickerGitStatusUntracked", { fg = normal.fg })
+        end
+
+        vim.api.nvim_create_autocmd("ColorScheme", {
+            group = vim.api.nvim_create_augroup("UserSnacksHighlights", { clear = true }),
+            callback = apply_untracked_git_status_highlight,
+        })
+        apply_untracked_git_status_highlight()
+    end,
     init = function()
         vim.api.nvim_create_autocmd("User", {
             pattern = "VeryLazy",
