@@ -1,57 +1,65 @@
 local deps = {
   {
     name = "ripgrep",
-    cmd = "rg",
+    executables = { "rg" },
     install = {
-      win32 = "winget install -e --id BurntSushi.ripgrep.MSVC",
-      mac = "brew install ripgrep",
-      arch = "sudo pacman -S --needed ripgrep",
-      unix = "sudo apt update && sudo apt install ripgrep",
+      winget = "winget install -e --id BurntSushi.ripgrep.MSVC",
+      brew = "brew install ripgrep",
+      pacman = "sudo pacman -S --needed ripgrep",
+      apt = "sudo apt update && sudo apt install ripgrep",
+      dnf = "sudo dnf install ripgrep",
+      apk = "sudo apk add ripgrep",
     },
   },
   {
     name = "fd",
-    cmd = { "fd", "fdfind" },
+    executables = { "fd", "fdfind" },
     install = {
-      win32 = "winget install -e --id sharkdp.fd",
-      mac = "brew install fd",
-      arch = "sudo pacman -S --needed fd",
-      unix = "sudo apt install fd-find",
+      winget = "winget install -e --id sharkdp.fd",
+      brew = "brew install fd",
+      pacman = "sudo pacman -S --needed fd",
+      apt = "sudo apt install fd-find",
+      dnf = "sudo dnf install fd-find",
+      apk = "sudo apk add fd",
     },
   },
   {
     name = "tree-sitter-cli",
-    cmd = "tree-sitter",
+    executables = { "tree-sitter" },
     install = {
-      win32 = "winget install tree-sitter.tree-sitter-cli",
-      mac = "brew install tree-sitter-cli",
-      arch = "sudo pacman -S --needed tree-sitter-cli",
-      unix = "sudo apt install tree-sitter-cli",
+      winget = "winget install tree-sitter.tree-sitter-cli",
+      brew = "brew install tree-sitter-cli",
+      pacman = "sudo pacman -S --needed tree-sitter-cli",
+      apt = "sudo apt install tree-sitter-cli",
+      dnf = "sudo dnf install tree-sitter-cli",
+      apk = "sudo apk add tree-sitter",
     },
   },
 }
 
-local function get_os()
+local function package_manager()
   if vim.fn.has("win32") == 1 then
-    return "win32"
-  elseif vim.fn.has("mac") == 1 then
-    return "mac"
-  elseif vim.fn.executable("pacman") == 1 then
-    return "arch"
-  else
-    return "unix"
+    return vim.fn.executable("winget") == 1 and "winget" or nil
+  end
+  if vim.fn.has("mac") == 1 then
+    return vim.fn.executable("brew") == 1 and "brew" or nil
+  end
+
+  for _, manager in ipairs({ "pacman", "apt", "dnf", "apk" }) do
+    local executable = manager == "apt" and "apt-get" or manager
+    if vim.fn.executable(executable) == 1 then
+      return manager
+    end
   end
 end
 
-local function check_and_install_deps()
+local function missing_dependencies()
   local missing = {}
-  local current_os = get_os()
 
   for _, dep in ipairs(deps) do
-    local commands = type(dep.cmd) == "table" and dep.cmd or { dep.cmd }
     local found = false
-    for _, cmd in ipairs(commands) do
-      if vim.fn.executable(cmd) == 1 then
+    for _, executable in ipairs(dep.executables) do
+      if vim.fn.executable(executable) == 1 then
         found = true
         break
       end
@@ -61,41 +69,61 @@ local function check_and_install_deps()
     end
   end
 
-  if #missing == 0 then return end
-
-  -- Build missing names string
-  local missing_names = {}
-  for _, dep in ipairs(missing) do
-    table.insert(missing_names, dep.name)
-  end
-
-  local msg = "Missing dependencies: " .. table.concat(missing_names, ", ") .. ". Install them now?"
-
-  vim.schedule(function()
-    vim.ui.select({"Yes", "No"}, { prompt = msg }, function(choice)
-      if choice == "Yes" then
-        local install_cmds = {}
-
-        -- Collect install commands for the missing dependencies
-        for _, dep in ipairs(missing) do
-          local cmd = dep.install[current_os]
-          if cmd then
-            table.insert(install_cmds, cmd)
-          end
-        end
-
-        if #install_cmds > 0 then
-          -- Join commands with && to run them sequentially
-          local full_cmd = table.concat(install_cmds, " && ")
-          vim.cmd("split | term " .. full_cmd)
-          vim.notify("Installing dependencies... Please wait and close the terminal when done.", vim.log.levels.INFO)
-        end
-      end
-    end)
-  end)
+  return missing
 end
 
+local function dependency_names(dependencies)
+  local names = {}
+  for _, dep in ipairs(dependencies) do
+    table.insert(names, dep.name)
+  end
+  return table.concat(names, ", ")
+end
+
+local function installation_message(missing)
+  local manager = package_manager()
+  if not manager then
+    return "Missing dependencies: " .. dependency_names(missing) .. ". Install them with your system package manager."
+  end
+
+  local commands = {}
+  for _, dep in ipairs(missing) do
+    local command = dep.install[manager]
+    if command then
+      table.insert(commands, command)
+    else
+      table.insert(commands, "# Install " .. dep.name .. " with " .. manager)
+    end
+  end
+
+  return "Missing dependencies: " .. dependency_names(missing) .. ".\nRun these commands:\n" .. table.concat(commands, "\n")
+end
+
+local function show_installation_instructions()
+  local missing = missing_dependencies()
+  if #missing == 0 then
+    vim.notify("All external Neovim dependencies are installed.", vim.log.levels.INFO)
+    return
+  end
+
+  vim.notify(installation_message(missing), vim.log.levels.WARN)
+end
+
+vim.api.nvim_create_user_command("NvimDeps", show_installation_instructions, {
+  desc = "Show external Neovim dependency installation commands",
+})
+
 vim.api.nvim_create_autocmd("VimEnter", {
-  callback = check_and_install_deps,
+  callback = function()
+    local missing = missing_dependencies()
+    if #missing > 0 then
+      vim.schedule(function()
+        vim.notify(
+          "Missing dependencies: " .. dependency_names(missing) .. ". Run :NvimDeps for installation commands.",
+          vim.log.levels.WARN
+        )
+      end)
+    end
+  end,
   once = true,
 })

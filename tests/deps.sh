@@ -14,8 +14,8 @@ printf '#!/bin/sh\nprintf "%%s\\n" "$*" > "$FD_CAPTURE"\nexit 0\n' > "$sandbox/s
 chmod +x "$sandbox/sudo"
 
 FD_CAPTURE="$sandbox/capture" PATH="$sandbox" "$nvim_bin" --headless \
-  "+lua vim.ui.select = function(_, _, callback) callback(\"Yes\") end; dofile(vim.fn.stdpath(\"config\") .. \"/lua/config/deps.lua\"); vim.api.nvim_exec_autocmds(\"VimEnter\", {})" \
-  '+lua vim.wait(1000)' \
+  '+NvimDeps' \
+  '+lua local messages = vim.fn.execute("messages"); assert(messages:find("sudo pacman %-S %-%-needed fd"))' \
   '+qa' >/dev/null 2>&1
 
-test "$(cat "$sandbox/capture")" = 'pacman -S --needed fd'
+test ! -e "$sandbox/capture"
