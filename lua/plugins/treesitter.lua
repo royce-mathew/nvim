@@ -2,6 +2,7 @@ return {
   -- nvim-treesitter: parser management and queries
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "main",
     version = false,
     build = ":TSUpdate",
     lazy = false,
@@ -11,26 +12,48 @@ return {
     },
     config = function()
       local treesitter = require("nvim-treesitter")
+      local ensure_installed = {
+        "bash",
+        "c",
+        "css",
+        "diff",
+        "html",
+        "javascript",
+        "jsdoc",
+        "json",
+        "lua",
+        "luadoc",
+        "luap",
+        "markdown",
+        "markdown_inline",
+        "printf",
+        "python",
+        "query",
+        "regex",
+        "rust",
+        "toml",
+        "tsx",
+        "typescript",
+        "vim",
+        "vimdoc",
+        "xml",
+        "yaml",
+      }
 
-
-      local function attach(bufnr)
-        local language = vim.treesitter.language.get_lang(vim.bo[bufnr].filetype)
-        if language and pcall(vim.treesitter.start, bufnr, language) then
-          if vim.treesitter.query.get(language, "indents") then
-            vim.bo[bufnr].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
-          end
-        end
-      end
-
+      treesitter.setup({
+        install_dir = vim.fn.stdpath("data") .. "/site",
+      })
+      treesitter.install(ensure_installed)
 
       vim.api.nvim_create_autocmd("FileType", {
         group = vim.api.nvim_create_augroup("UserTreesitter", { clear = true }),
         callback = function(args)
-          attach(args.buf)
+          local language = vim.treesitter.language.get_lang(vim.bo[args.buf].filetype)
+          if language and vim.treesitter.query.get(language, "highlights") then
+            pcall(vim.treesitter.start, args.buf)
+          end
         end,
       })
-      -- A file passed on the command line receives FileType before Lazy configures this plugin.
-      attach(vim.api.nvim_get_current_buf())
 
 
       require("nvim-ts-autotag").setup()
