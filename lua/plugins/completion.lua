@@ -19,8 +19,26 @@ return {
         nerd_font_variant = "mono",
       },
 
-      -- Only show the documentation popup when manually triggered
-      completion = { documentation = { auto_show = false } },
+      completion = {
+        accept = {
+          auto_brackets = { enabled = true },
+        },
+        documentation = {
+          auto_show = true,
+          auto_show_delay_ms = 200,
+        },
+        menu = {
+          draw = {
+            treesitter = { "lsp" },
+          },
+        },
+      },
+      signature = {
+        enabled = true,
+        window = {
+          show_documentation = true,
+        },
+      },
 
       -- Default list of enabled providers defined so that you can extend it
       -- elsewhere in your config, without redefining it, due to `opts_extend`
@@ -33,5 +51,17 @@ return {
       fuzzy = { implementation = "prefer_rust_with_warning" },
     },
     opts_extend = { "sources.default" },
+  },
+
+  {
+    "nvim-mini/mini.pairs",
+    event = "VeryLazy",
+    opts = {
+      modes = { insert = true, command = true, terminal = false },
+      skip_next = [=[[%w%%%'%[%"%.%`%$]]=],
+      skip_ts = { "string" },
+      skip_unbalanced = true,
+      markdown = true,
+    },
   },
 }

@@ -33,6 +33,9 @@ return {
       setup = {},
     },
     config = function(_, opts)
+      -- Keep diagnostics in signs and pickers without overriding syntax highlights.
+      vim.diagnostic.config({ underline = false })
+
       -- Setup Mason first
       require("mason").setup()
       
