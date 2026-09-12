@@ -10,6 +10,14 @@ for tool in rg tree-sitter pacman; do
   chmod +x "$sandbox/$tool"
 done
 ln -s /bin/sh "$sandbox/sh"
+for tool in dirname readlink; do
+  ln -s "$(command -v "$tool")" "$sandbox/$tool"
+done
+
+if fusermount=$(command -v fusermount 2>/dev/null); then
+  ln -s "$fusermount" "$sandbox/fusermount"
+fi
+
 printf '#!/bin/sh\nprintf "%%s\\n" "$*" > "$FD_CAPTURE"\nexit 0\n' > "$sandbox/sudo"
 chmod +x "$sandbox/sudo"
 

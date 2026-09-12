@@ -7,6 +7,32 @@ assert(vim.tbl_contains(require("mason-lspconfig").get_available_servers(), "ts_
 local _, toml_icon_hl = Snacks.util.icon("Cargo.toml", "file")
 assert(toml_icon_hl == "DevIconToml")
 assert(vim.api.nvim_get_hl(0, { name = "SnacksPickerGitStatusUntracked", link = true }).link == "Normal")
+local git_sign_colors = {
+  GitSignsAdd = 0x358b4d,
+  GitSignsChange = 0x5b7db8,
+  GitSignsDelete = 0xad417c,
+}
+for name, color in pairs(git_sign_colors) do
+  assert(vim.api.nvim_get_hl(0, { name = name }).fg == color)
+end
+assert(vim.g.mapleader == " ")
+assert(vim.fn.maparg("gd", "n") ~= "")
+assert(require("conform").formatters_by_ft.rust[1] == "rustfmt")
+assert(require("lint").linters_by_ft.python[1] == "ruff")
+
+require("lazy").load({
+  plugins = {
+    "flash.nvim",
+    "neotest",
+    "nvim-dap",
+    "persistence.nvim",
+    "todo-comments.nvim",
+    "trouble.nvim",
+    "which-key.nvim",
+  },
+})
+assert(vim.tbl_contains(require("mason-nvim-dap").get_available_sources(), "python"))
+assert(vim.fn.exists(":Trouble") == 2)
 
 
 local messages = vim.fn.execute("messages")

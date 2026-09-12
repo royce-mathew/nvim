@@ -14,5 +14,10 @@ return {
 
     -- Make the directory paths brighter so they don't blend into the background
     vim.api.nvim_set_hl(0, "SnacksPickerDir", { fg = "#8c8c8c", force = true })
+
+    -- Oxocarbon semantic hues, blended toward the background for a visible but restrained gutter.
+    vim.api.nvim_set_hl(0, "GitSignsAdd", { fg = "#358b4d", force = true })
+    vim.api.nvim_set_hl(0, "GitSignsChange", { fg = "#5b7db8", force = true })
+    vim.api.nvim_set_hl(0, "GitSignsDelete", { fg = "#ad417c", force = true })
   end,
 }

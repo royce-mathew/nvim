@@ -19,20 +19,39 @@ return {
     "neovim/nvim-lspconfig",
     event = { "BufReadPre", "BufNewFile" },
     dependencies = {
+      "b0o/schemastore.nvim",
       "saghen/blink.cmp",
     },
     opts = {
       -- List of servers to install and configure
       servers = {
-        lua_ls = {},
-        rust_analyzer = {},
-        pyright = {},
-        ts_ls = {},
         eslint = {},
+        jsonls = {},
+        lua_ls = {},
+        pyright = {},
+        rust_analyzer = {},
+        taplo = {},
+        ts_ls = {},
+        yamlls = {},
       },
       setup = {},
     },
     config = function(_, opts)
+      local schemastore = require("schemastore")
+      opts.servers.jsonls.settings = {
+        json = {
+          schemas = schemastore.json.schemas(),
+          validate = { enable = true },
+        },
+      }
+      opts.servers.yamlls.settings = {
+        yaml = {
+          keyOrdering = false,
+          schemaStore = { enable = false, url = "" },
+          schemas = schemastore.yaml.schemas(),
+        },
+      }
+
       -- Keep diagnostics in signs and pickers without overriding syntax highlights.
       vim.diagnostic.config({ underline = false })
 
@@ -53,8 +72,10 @@ return {
       local servers = opts.servers
       local npm_servers = {
         eslint = true,
+        jsonls = true,
         pyright = true,
         ts_ls = true,
+        yamlls = true,
       }
       local ensure_installed = vim.tbl_filter(function(server)
         -- Keep system LSPs usable, but do not retry Mason packages without their npm prerequisite.
@@ -80,16 +101,11 @@ return {
         callback = function(ev)
           local opts = { buffer = ev.buf }
 
-          vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
           vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
           vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
           vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, opts)
           vim.keymap.set("n", "<space>rn", vim.lsp.buf.rename, opts)
           vim.keymap.set({ "n", "v" }, "<space>ca", vim.lsp.buf.code_action, opts)
-          vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
-          vim.keymap.set("n", "<space>f", function()
-            vim.lsp.buf.format({ async = true })
-          end, opts)
         end,
       })
     end,

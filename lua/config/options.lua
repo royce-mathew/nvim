@@ -1,6 +1,7 @@
--- Default Options
-local opt = vim.opt
+vim.g.mapleader = " "
+vim.g.maplocalleader = "\\"
 
+local opt = vim.opt
 opt.autowrite = true -- Enable auto write
 opt.clipboard = "unnamedplus" -- Sync with system clipboard
 opt.completeopt = "menu,menuone,noselect"
