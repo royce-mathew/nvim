@@ -5,6 +5,7 @@ local deps = {
     install = {
       win32 = "winget install -e --id BurntSushi.ripgrep.MSVC",
       mac = "brew install ripgrep",
+      arch = "sudo pacman -S --needed ripgrep",
       unix = "sudo apt update && sudo apt install ripgrep",
     },
   },
@@ -14,6 +15,7 @@ local deps = {
     install = {
       win32 = "winget install -e --id sharkdp.fd",
       mac = "brew install fd",
+      arch = "sudo pacman -S --needed fd",
       unix = "sudo apt install fd-find",
     },
   },
@@ -23,6 +25,7 @@ local deps = {
     install = {
       win32 = "winget install tree-sitter.tree-sitter-cli",
       mac = "brew install tree-sitter-cli",
+      arch = "sudo pacman -S --needed tree-sitter-cli",
       unix = "sudo apt install tree-sitter-cli",
     },
   },
@@ -33,6 +36,8 @@ local function get_os()
     return "win32"
   elseif vim.fn.has("mac") == 1 then
     return "mac"
+  elseif vim.fn.executable("pacman") == 1 then
+    return "arch"
   else
     return "unix"
   end
