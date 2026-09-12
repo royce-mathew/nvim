@@ -1,4 +1,5 @@
 return {
+  -- nvim-treesitter: parser management and queries
   {
     "nvim-treesitter/nvim-treesitter",
     version = false,
@@ -77,4 +78,5 @@ return {
       end)
     end,
   },
+
 }

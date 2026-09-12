@@ -1,11 +1,24 @@
 return {
+  -- Mason: package manager for LSP servers, formatters, linters
+  {
+    "mason-org/mason.nvim",
+    opts = {},
+  },
+
+  -- Mason-lspconfig: LSP server registry
+  {
+    "mason-org/mason-lspconfig.nvim",
+    dependencies = {
+      "mason-org/mason.nvim",
+      "neovim/nvim-lspconfig",
+    },
+  },
+
+  -- nvim-lspconfig: LSP configurations
   {
     "neovim/nvim-lspconfig",
     event = { "BufReadPre", "BufNewFile" },
     dependencies = {
-      "williamboman/mason.nvim",
-      "williamboman/mason-lspconfig.nvim",
-      -- Adds extra capabilities from cmp if you add it later
       "saghen/blink.cmp",
     },
     opts = {
@@ -57,28 +70,25 @@ return {
         vim.lsp.config(server, config)
         vim.lsp.enable(server)
       end
-      
+
       -- LspAttach autocommand for keymaps
       vim.api.nvim_create_autocmd("LspAttach", {
-        group = vim.api.nvim_create_augroup("UserLspConfig", {}),
+        group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
         callback = function(ev)
-          local map_opts = { buffer = ev.buf }
-          
-          -- Essential modern navigation / actions
-          vim.keymap.set("n", "gd", vim.lsp.buf.definition, map_opts)
-          vim.keymap.set("n", "K", vim.lsp.buf.hover, map_opts)
-          vim.keymap.set("n", "gi", vim.lsp.buf.implementation, map_opts)
-          vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, map_opts)
-          vim.keymap.set("n", "<space>rn", vim.lsp.buf.rename, map_opts)
-          vim.keymap.set({ "n", "v" }, "<space>ca", vim.lsp.buf.code_action, map_opts)
-          vim.keymap.set("n", "gr", vim.lsp.buf.references, map_opts)
-          
-          -- Standard formatting trigger
+          local opts = { buffer = ev.buf }
+
+          vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+          vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+          vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
+          vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, opts)
+          vim.keymap.set("n", "<space>rn", vim.lsp.buf.rename, opts)
+          vim.keymap.set({ "n", "v" }, "<space>ca", vim.lsp.buf.code_action, opts)
+          vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
           vim.keymap.set("n", "<space>f", function()
             vim.lsp.buf.format({ async = true })
-          end, map_opts)
+          end, opts)
         end,
-      })	
+      })
     end,
-  }
+  },
 }

@@ -1,5 +1,3 @@
-local vim = vim
-
 -- Default Options
 local opt = vim.opt
 
@@ -32,12 +30,12 @@ opt.sidescrolloff = 8 -- Columns of context
 opt.signcolumn = "yes" -- Always show the signcolumn, otherwise it would shift the text each time
 opt.smartcase = true -- Don't ignore case with capitals
 opt.smartindent = true -- Insert indents automatically
+opt.smoothscroll = true
 opt.spelllang = { "en" }
 opt.splitbelow = true -- Put new windows below current
 opt.splitkeep = "screen"
 opt.splitright = true -- Put new windows right of current
 opt.tabstop = 2 -- Number of spaces tabs count for
-opt.termguicolors = true -- True color support
 opt.timeoutlen = 300 -- Lower timeout to register keymaps (default 1000)
 opt.undofile = true
 opt.undolevels = 10000
