@@ -5,6 +5,9 @@ return {
   config = function()
     vim.cmd [[ colorscheme oxocarbon ]]
 
+    -- Separate LSP hover and other floating windows from the editor background.
+    vim.api.nvim_set_hl(0, "NormalFloat", { bg = "#202020", force = true })
+
     -- Make the highlighted search text in the Snacks picker stand out (cyan/blue)
     vim.api.nvim_set_hl(0, "SnacksPickerMatch", { fg = "#33b1ff", bold = true, force = true })
 

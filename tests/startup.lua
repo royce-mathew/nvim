@@ -15,6 +15,7 @@ local git_sign_colors = {
 for name, color in pairs(git_sign_colors) do
   assert(vim.api.nvim_get_hl(0, { name = name }).fg == color)
 end
+assert(vim.api.nvim_get_hl(0, { name = "NormalFloat" }).bg == 0x202020)
 assert(vim.g.mapleader == " ")
 assert(vim.fn.maparg("gd", "n") ~= "")
 assert(require("conform").formatters_by_ft.rust[1] == "rustfmt")
