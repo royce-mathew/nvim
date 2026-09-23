@@ -20,10 +20,12 @@ assert(vim.g.mapleader == " ")
 assert(vim.fn.maparg("gd", "n") ~= "")
 assert(require("conform").formatters_by_ft.rust[1] == "rustfmt")
 assert(require("lint").linters_by_ft.python[1] == "ruff")
+assert(vim.fn.exists(":Copilot") == 2)
 
 require("lazy").load({
   plugins = {
     "flash.nvim",
+    "copilot.vim",
     "neotest",
     "nvim-dap",
     "persistence.nvim",
@@ -34,6 +36,9 @@ require("lazy").load({
 })
 assert(vim.tbl_contains(require("mason-nvim-dap").get_available_sources(), "python"))
 assert(vim.fn.exists(":Trouble") == 2)
+assert(vim.g.copilot_no_tab_map)
+local copilot_accept = vim.fn.maparg("<C-j>", "i", false, true)
+assert(copilot_accept.expr and copilot_accept.rhs == 'copilot#Accept("\\<CR>")')
 
 
 local messages = vim.fn.execute("messages")

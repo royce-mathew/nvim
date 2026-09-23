@@ -29,6 +29,12 @@
 | `<leader>xx` / `<leader>xX` | Project / buffer diagnostics |
 | `<leader>xQ` / `<leader>xL` | Quickfix / location list |
 
+## Copilot
+
+| Key | Action |
+|---|---|
+| `<C-j>` | Accept Copilot suggestion |
+
 ## Git
 
 | Key | Action |
