@@ -11,39 +11,8 @@ return {
       "windwp/nvim-ts-autotag",
     },
     config = function()
-      local treesitter = require("nvim-treesitter")
-      local ensure_installed = {
-        "bash",
-        "c",
-        "css",
-        "diff",
-        "html",
-        "javascript",
-        "jsdoc",
-        "json",
-        "lua",
-        "luadoc",
-        "luap",
-        "markdown",
-        "markdown_inline",
-        "printf",
-        "python",
-        "query",
-        "regex",
-        "rust",
-        "toml",
-        "tsx",
-        "typescript",
-        "vim",
-        "vimdoc",
-        "xml",
-        "yaml",
-      }
-
-      treesitter.setup({
-        install_dir = vim.fn.stdpath("data") .. "/site",
-      })
-      treesitter.install(ensure_installed)
+      local config = require("config.treesitter")
+      config.setup_parsers()
 
       vim.api.nvim_create_autocmd("FileType", {
         group = vim.api.nvim_create_augroup("UserTreesitter", { clear = true }),
@@ -58,47 +27,7 @@ return {
 
       require("nvim-ts-autotag").setup()
 
-      local textobjects = require("nvim-treesitter-textobjects.move")
-      require("nvim-treesitter-textobjects").setup({
-        move = { set_jumps = true },
-      })
-
-      vim.keymap.set({ "n", "x", "o" }, "]f", function()
-        textobjects.goto_next_start("@function.outer", "textobjects")
-      end)
-      vim.keymap.set({ "n", "x", "o" }, "]c", function()
-        textobjects.goto_next_start("@class.outer", "textobjects")
-      end)
-      vim.keymap.set({ "n", "x", "o" }, "]a", function()
-        textobjects.goto_next_start("@parameter.inner", "textobjects")
-      end)
-      vim.keymap.set({ "n", "x", "o" }, "]F", function()
-        textobjects.goto_next_end("@function.outer", "textobjects")
-      end)
-      vim.keymap.set({ "n", "x", "o" }, "]C", function()
-        textobjects.goto_next_end("@class.outer", "textobjects")
-      end)
-      vim.keymap.set({ "n", "x", "o" }, "]A", function()
-        textobjects.goto_next_end("@parameter.inner", "textobjects")
-      end)
-      vim.keymap.set({ "n", "x", "o" }, "[f", function()
-        textobjects.goto_previous_start("@function.outer", "textobjects")
-      end)
-      vim.keymap.set({ "n", "x", "o" }, "[c", function()
-        textobjects.goto_previous_start("@class.outer", "textobjects")
-      end)
-      vim.keymap.set({ "n", "x", "o" }, "[a", function()
-        textobjects.goto_previous_start("@parameter.inner", "textobjects")
-      end)
-      vim.keymap.set({ "n", "x", "o" }, "[F", function()
-        textobjects.goto_previous_end("@function.outer", "textobjects")
-      end)
-      vim.keymap.set({ "n", "x", "o" }, "[C", function()
-        textobjects.goto_previous_end("@class.outer", "textobjects")
-      end)
-      vim.keymap.set({ "n", "x", "o" }, "[A", function()
-        textobjects.goto_previous_end("@parameter.inner", "textobjects")
-      end)
+      config.setup_textobjects()
     end,
   },
 
