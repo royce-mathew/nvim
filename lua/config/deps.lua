@@ -36,6 +36,22 @@ local function tree_sitter_version()
   return { tonumber(major), tonumber(minor), tonumber(patch) }
 end
 
+local function package_manager()
+  if vim.fn.has("win32") == 1 then
+    return vim.fn.executable("winget") == 1 and "winget" or nil
+  end
+  if vim.fn.has("mac") == 1 then
+    return vim.fn.executable("brew") == 1 and "brew" or nil
+  end
+
+  for _, manager in ipairs({ "pacman", "apt", "dnf", "apk" }) do
+    local executable = manager == "apt" and "apt-get" or manager
+    if vim.fn.executable(executable) == 1 then
+      return manager
+    end
+  end
+end
+
 local deps = {
   {
     name = "Neovim 0.12.0 or later",

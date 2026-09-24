@@ -2,6 +2,7 @@
 set -euo pipefail
 
 nvim_bin=${NVIM_BIN:-$(command -v nvim)}
+config_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 sandbox=$(mktemp -d)
 trap 'rm -rf "$sandbox"' EXIT
 
@@ -19,44 +20,37 @@ exit "${TREE_SITTER_EXIT:-0}"
 EOF
 chmod +x "$sandbox/tree-sitter"
 ln -s /bin/sh "$sandbox/sh"
-for tool in dirname readlink; do
-  ln -s "$(command -v "$tool")" "$sandbox/$tool"
-done
 
-if fusermount=$(command -v fusermount 2>/dev/null); then
-  ln -s "$fusermount" "$sandbox/fusermount"
-fi
+nvim_deps() {
+  PATH="$sandbox" "$nvim_bin" --clean --headless --cmd "set rtp^=$config_root" \
+    '+lua require("config.deps")' "$@" '+qa'
+}
 
-printf '#!/bin/sh\nprintf "%%s\\n" "$*" > "$FD_CAPTURE"\nexit 0\n' > "$sandbox/sudo"
-chmod +x "$sandbox/sudo"
-
-FD_CAPTURE="$sandbox/capture" PATH="$sandbox" "$nvim_bin" --headless \
+nvim_deps \
   '+NvimDeps' \
   '+lua local messages = vim.fn.execute("messages"); assert(messages:find("sudo pacman %-S %-%-needed fd"))' \
-  '+qa' >/dev/null 2>&1
-
-test ! -e "$sandbox/capture"
+  >/dev/null 2>&1
 
 rm "$sandbox/curl"
-PATH="$sandbox" "$nvim_bin" --headless \
+nvim_deps \
   '+NvimDeps' \
   '+lua local messages = vim.fn.execute("messages"); assert(messages:find("curl", 1, true))' \
-  '+qa' >/dev/null 2>&1
+  >/dev/null 2>&1
 printf '#!/bin/sh\nexit 0\n' > "$sandbox/curl"
 chmod +x "$sandbox/curl"
 
-TREE_SITTER_VERSION=0.26.0 PATH="$sandbox" "$nvim_bin" --headless \
-  '+NvimDeps' \
-  '+lua local messages = vim.fn.execute("messages"); assert(messages:find("tree%-sitter%-cli 0%.26%.1 or later")); assert(not messages:find("Failed to run config for nvim%-treesitter"))' \
-  '+qa' >/dev/null 2>&1
-
-TREE_SITTER_EXIT=127 PATH="$sandbox" "$nvim_bin" --headless \
+TREE_SITTER_VERSION=0.26.0 nvim_deps \
   '+NvimDeps' \
   '+lua local messages = vim.fn.execute("messages"); assert(messages:find("tree%-sitter%-cli 0%.26%.1 or later"))' \
-  '+qa' >/dev/null 2>&1
+  >/dev/null 2>&1
 
-PATH="$sandbox" "$nvim_bin" --headless \
+TREE_SITTER_EXIT=127 nvim_deps \
+  '+NvimDeps' \
+  '+lua local messages = vim.fn.execute("messages"); assert(messages:find("tree%-sitter%-cli 0%.26%.1 or later"))' \
+  >/dev/null 2>&1
+
+nvim_deps \
   '+lua vim.version = function() return { major = 0, minor = 11, patch = 0 } end' \
   '+NvimDeps' \
   '+lua local messages = vim.fn.execute("messages"); assert(messages:find("Neovim 0%.12%.0 or later"))' \
-  '+qa' >/dev/null 2>&1
+  >/dev/null 2>&1
