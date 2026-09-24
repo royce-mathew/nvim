@@ -1,4 +1,49 @@
+local M = {}
+
+local minimum_neovim_version = { 0, 12, 0 }
+local minimum_tree_sitter_version = { 0, 26, 1 }
+
+local function version_at_least(version, minimum)
+  for index, required in ipairs(minimum) do
+    if version[index] ~= required then
+      return version[index] > required
+    end
+  end
+
+  return true
+end
+
+local function neovim_version()
+  local version = vim.version()
+  return { version.major, version.minor, version.patch }
+end
+
+local function tree_sitter_version()
+  if vim.fn.executable("tree-sitter") ~= 1 then
+    return nil
+  end
+
+  local output = vim.fn.system({ "tree-sitter", "--version" })
+  if vim.v.shell_error ~= 0 then
+    return nil
+  end
+
+  local major, minor, patch = output:match("tree%-sitter%s+(%d+)%.(%d+)%.(%d+)")
+  if not major then
+    return nil
+  end
+
+  return { tonumber(major), tonumber(minor), tonumber(patch) }
+end
+
 local deps = {
+  {
+    name = "Neovim 0.12.0 or later",
+    treesitter = true,
+    validate = function()
+      return version_at_least(neovim_version(), minimum_neovim_version)
+    end,
+  },
   {
     name = "ripgrep",
     executables = { "rg" },
@@ -24,8 +69,51 @@ local deps = {
     },
   },
   {
-    name = "tree-sitter-cli",
+    name = "curl",
+    executables = { "curl" },
+    treesitter = true,
+    install = {
+      winget = "winget install -e --id curl.curl",
+      brew = "brew install curl",
+      pacman = "sudo pacman -S --needed curl",
+      apt = "sudo apt install curl",
+      dnf = "sudo dnf install curl",
+      apk = "sudo apk add curl",
+    },
+  },
+  {
+    name = "tar",
+    executables = { "tar" },
+    treesitter = true,
+    install = {
+      brew = "brew install gnu-tar",
+      pacman = "sudo pacman -S --needed tar",
+      apt = "sudo apt install tar",
+      dnf = "sudo dnf install tar",
+      apk = "sudo apk add tar",
+    },
+  },
+  {
+    name = "C compiler",
+    executables = { "cc", "gcc", "clang", "cl" },
+    treesitter = true,
+    install = {
+      winget = "winget install -e --id LLVM.LLVM",
+      brew = "brew install llvm",
+      pacman = "sudo pacman -S --needed base-devel",
+      apt = "sudo apt install build-essential",
+      dnf = "sudo dnf install gcc",
+      apk = "sudo apk add build-base",
+    },
+  },
+  {
+    name = "tree-sitter-cli 0.26.1 or later",
     executables = { "tree-sitter" },
+    treesitter = true,
+    validate = function()
+      local version = tree_sitter_version()
+      return version and version_at_least(version, minimum_tree_sitter_version)
+    end,
     install = {
       winget = "winget install tree-sitter.tree-sitter-cli",
       brew = "brew install tree-sitter-cli",
@@ -37,34 +125,25 @@ local deps = {
   },
 }
 
-local function package_manager()
-  if vim.fn.has("win32") == 1 then
-    return vim.fn.executable("winget") == 1 and "winget" or nil
-  end
-  if vim.fn.has("mac") == 1 then
-    return vim.fn.executable("brew") == 1 and "brew" or nil
+local function dependency_is_available(dep)
+  if dep.validate then
+    return dep.validate()
   end
 
-  for _, manager in ipairs({ "pacman", "apt", "dnf", "apk" }) do
-    local executable = manager == "apt" and "apt-get" or manager
+  for _, executable in ipairs(dep.executables) do
     if vim.fn.executable(executable) == 1 then
-      return manager
+      return true
     end
   end
+
+  return false
 end
 
-local function missing_dependencies()
+local function missing_dependencies(treesitter_only)
   local missing = {}
 
   for _, dep in ipairs(deps) do
-    local found = false
-    for _, executable in ipairs(dep.executables) do
-      if vim.fn.executable(executable) == 1 then
-        found = true
-        break
-      end
-    end
-    if not found then
+    if (not treesitter_only or dep.treesitter) and not dependency_is_available(dep) then
       table.insert(missing, dep)
     end
   end
@@ -88,7 +167,7 @@ local function installation_message(missing)
 
   local commands = {}
   for _, dep in ipairs(missing) do
-    local command = dep.install[manager]
+    local command = dep.install and dep.install[manager]
     if command then
       table.insert(commands, command)
     else
@@ -109,6 +188,14 @@ local function show_installation_instructions()
   vim.notify(installation_message(missing), vim.log.levels.WARN)
 end
 
+function M.treesitter_plugin_ready()
+  return version_at_least(neovim_version(), minimum_neovim_version)
+end
+
+function M.treesitter_installer_ready()
+  return #missing_dependencies(true) == 0
+end
+
 vim.api.nvim_create_user_command("NvimDeps", show_installation_instructions, {
   desc = "Show external Neovim dependency installation commands",
 })
@@ -127,3 +214,5 @@ vim.api.nvim_create_autocmd("VimEnter", {
   end,
   once = true,
 })
+
+return M

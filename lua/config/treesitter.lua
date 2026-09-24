@@ -33,7 +33,9 @@ function M.setup_parsers()
   treesitter.setup({
     install_dir = vim.fn.stdpath("data") .. "/site",
   })
-  treesitter.install(M.parsers)
+  if require("config.deps").treesitter_installer_ready() then
+    treesitter.install(M.parsers)
+  end
 end
 
 function M.setup_textobjects()

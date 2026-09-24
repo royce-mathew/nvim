@@ -6,6 +6,9 @@ return {
     version = false,
     build = ":TSUpdate",
     lazy = false,
+    cond = function()
+      return require("config.deps").treesitter_plugin_ready()
+    end,
     dependencies = {
       "nvim-treesitter/nvim-treesitter-textobjects",
       "windwp/nvim-ts-autotag",

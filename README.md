@@ -3,6 +3,12 @@
 ## Requirements
 [Fira Code Nerd Font](https://www.nerdfonts.com/)
 
+- Neovim 0.12.0 or later
+- `ripgrep` and `fd`
+- For Tree-sitter parser installation: `tree-sitter-cli` 0.26.1 or later, `curl`, `tar`, and a C compiler. Install `tree-sitter-cli` through your system package manager rather than npm so it matches your system libraries.
+
+Run `:NvimDeps` to check the external tools and show package-manager installation commands. Tree-sitter parser installation is skipped until its complete toolchain is available, preventing asynchronous parser-installation failures during startup.
+
 ## VS Code Neovim
 
 When started by [vscode-neovim](https://marketplace.visualstudio.com/items?itemName=asvetliakov.vscode-neovim), this configuration detects `vim.g.vscode` and loads `lua/config/vscode.lua` instead of the regular Neovim setup. It starts Lazy with only Flash, mini.pairs, and Treesitter textobjects; Treesitter highlighting and autotag remain disabled. VS Code provides language servers, completion, formatting, linting, diagnostics, and UI.
