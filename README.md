@@ -14,9 +14,12 @@ The VS Code path keeps the space leader and provides these mappings:
 - `<leader>e`, `<leader>,`, `<leader>fr`: Explorer, open editors, recent files
 - `<leader>cf`, `<leader>rn`, `<leader>ca`: format, rename, code action
 - `[d` / `]d`, `[h` / `]h`: previous/next diagnostic or Git change
+- `gi` / `gI` / `gy`: implementation / type definition
 - `<S-h>` / `<S-l>` and `<C-h/j/k/l>`: editor and editor-group navigation
 - `<leader>-` / `<leader>|`: split below / right
 - `s` / `S` and Treesitter textobject motions such as `]f` / `[f`: Flash and structural navigation
+- `<leader>xx`: Problems panel
+- `jk`: leave insert mode
 
-VS Code's built-in vscode-neovim navigation mappings remain responsible for `gd`, `gD`, `gr`, `K`, and related code-navigation commands. Use VS Code settings for editor appearance, language servers, formatting, completion, and keyboard passthroughs.
+VS Code's built-in vscode-neovim navigation mappings remain responsible for `gd`, `gD`, `gr`, and `K`. This configuration explicitly maps `gi`, `gI`, and `gy` to VS Code's implementation and type-definition commands. Use VS Code settings for editor appearance, language servers, formatting, completion, and keyboard passthroughs.
 

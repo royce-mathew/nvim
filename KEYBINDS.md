@@ -1,6 +1,8 @@
 # Keybinds
 
 `<leader>` is Space. These are the daily-use mappings; use `<leader>sk` to search the complete map list.
+>
+> This reference is for native Neovim. VS Code mappings are listed in the [README](README.md#vs-code-neovim).
 
 ## Find and navigate
 

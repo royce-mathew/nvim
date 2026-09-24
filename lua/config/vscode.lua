@@ -6,6 +6,10 @@ if vim.g.vscode_clipboard then
 end
 vim.notify = vscode.notify
 
+vim.opt.timeoutlen = 300
+
+map("i", "jk", "<Esc>", { desc = "Normal Mode" })
+
 require("config.lazy").setup("config.vscode_plugins")
 
 local function action(command, options)
@@ -36,6 +40,10 @@ map("n", "<leader>e", action("workbench.view.explorer"), { desc = "File Explorer
 map("n", "<leader>,", action("workbench.action.showAllEditors"), { desc = "Buffers" })
 map("n", "<leader>fr", action("workbench.action.openRecent"), { desc = "Recent Files" })
 
+map("n", "gi", action("editor.action.goToImplementation"), { desc = "Go to Implementation" })
+map("n", "gI", action("editor.action.goToImplementation"), { desc = "Go to Implementation" })
+map("n", "gy", action("editor.action.goToTypeDefinition"), { desc = "Go to Type Definition" })
+
 map("n", "<leader>cf", format_document, { desc = "Format Document" })
 map("x", "<leader>cf", format_selection, { desc = "Format Selection" })
 map({ "n", "x" }, "<leader>rn", function()
@@ -51,6 +59,7 @@ end, { desc = "Code Action" })
 map("n", "<leader>cd", action("editor.action.showHover"), { desc = "Line Diagnostics" })
 map("n", "]d", action("editor.action.marker.next"), { desc = "Next Diagnostic" })
 map("n", "[d", action("editor.action.marker.prev"), { desc = "Previous Diagnostic" })
+map("n", "<leader>xx", action("workbench.actions.view.problems"), { desc = "Problems" })
 
 map("n", "]h", action("workbench.action.editor.nextChange"), { desc = "Next Git Hunk" })
 map("n", "[h", action("workbench.action.editor.previousChange"), { desc = "Previous Git Hunk" })

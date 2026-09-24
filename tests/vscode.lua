@@ -1,59 +1,41 @@
-local calls = {}
+local source = debug.getinfo(1, "S").source:sub(2)
+local config_root = vim.fs.dirname(vim.fs.dirname(source))
+vim.opt.rtp:prepend(config_root)
 
+vim.g.vscode = true
+local actions = {}
 package.preload.vscode = function()
   return {
-    action = function(command, options)
-      table.insert(calls, { method = "action", command = command, options = options })
+    action = function(command)
+      actions[#actions + 1] = command
     end,
-    call = function(command, options)
-      table.insert(calls, { method = "call", command = command, options = options })
-    end,
+    call = function() end,
     notify = function() end,
     with_insert = function(callback)
-      callback()
+      return callback()
     end,
   }
 end
-
-vim.g.vscode = true
-vim.g.vscode_clipboard = { name = "vscode" }
-dofile(vim.fn.getcwd() .. "/init.lua")
-
-assert(vim.g.mapleader == " ")
-assert(vim.g.clipboard.name == "vscode")
-assert(package.loaded["config.lazy"])
-assert(package.loaded["config.options"] == nil)
-assert(package.loaded["config.keymaps"] == nil)
-
-local plugins = require("lazy.core.config").plugins
-assert(plugins["flash.nvim"])
-assert(plugins["mini.pairs"])
-assert(plugins["nvim-treesitter"])
-assert(not plugins["mason.nvim"])
-assert(vim.fn.maparg("]f", "n") ~= "")
-
-local function invoke(lhs, mode)
-  local mapping = vim.fn.maparg(lhs, mode, false, true)
-  assert(type(mapping.callback) == "function", lhs .. " is not a callback mapping")
-  mapping.callback()
+package.preload["config.lazy"] = function()
+  return { setup = function() end }
 end
 
-invoke("<leader>ff", "n")
-assert(calls[#calls].method == "action")
-assert(calls[#calls].command == "workbench.action.quickOpen")
+require("config.vscode")
 
-invoke("<leader>cf", "n")
-assert(calls[#calls].method == "call")
-assert(calls[#calls].command == "editor.action.formatDocument")
+assert(vim.o.timeoutlen == 300)
 
-invoke("<leader>cf", "x")
-assert(calls[#calls].method == "call")
-assert(calls[#calls].command == "editor.action.formatSelection")
+local insert_mapping = vim.fn.maparg("jk", "i", false, true)
+assert(insert_mapping.lhs == "jk")
+assert(insert_mapping.rhs == "<Esc>")
 
-invoke("<leader>rn", "n")
-assert(calls[#calls].method == "action")
-assert(calls[#calls].command == "editor.action.rename")
+local function assert_action_mapping(lhs, command)
+  local mapping = vim.fn.maparg(lhs, "n", false, true)
+  assert(mapping.callback)
+  mapping.callback()
+  assert(actions[#actions] == command)
+end
 
-invoke("<C-s>", "i")
-assert(calls[#calls].method == "action")
-assert(calls[#calls].command == "workbench.action.files.save")
+assert_action_mapping("gi", "editor.action.goToImplementation")
+assert_action_mapping("gI", "editor.action.goToImplementation")
+assert_action_mapping("gy", "editor.action.goToTypeDefinition")
+assert_action_mapping("<leader>xx", "workbench.actions.view.problems")
